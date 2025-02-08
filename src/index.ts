@@ -1,5 +1,7 @@
 import express from "express";
 import { PrismaClient } from "@prisma/client";
+// import  app  from "./app";
+import pool from "./db/index";  
 
 const app = express();
 const prisma = new PrismaClient();
@@ -20,6 +22,13 @@ app.post("/users", async (req, res) => {
     res.json(newUser);
 });
 
-app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+app.listen(PORT, async () => {
+    try {
+        await pool.query("SELECT NOW()");
+        console.log(`Server is running on port ${PORT}`);
+    } catch (error) {
+        console.error("Database connection failed:", error);
+    }
 });
+
+

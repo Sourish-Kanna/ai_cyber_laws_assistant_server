@@ -41,14 +41,4 @@ desktop.ini
 # VS Code
 .vscode/
 
-
-node_modules/
-dist/
-.env
-.env.local
-logs/
-*.log
-prisma/migrations/migration_lock.toml
-prisma/client/
-.vscode/
-*.tsbuildinfo
+package-lock.json
