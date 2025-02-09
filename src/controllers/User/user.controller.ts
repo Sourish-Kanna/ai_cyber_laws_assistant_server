@@ -1,18 +1,25 @@
 import { Request, Response } from "express";
-import knex from "../../db/constrants"; // Make sure this path is correct
+import knex from "../../db/constrants";
+import sendResponse from "../../utils/api_response_handler";
+import { asyncHandler } from "../../utils/asyncHandler";
 
-// Fetch all users
-export const getAllUser = async (req: Request, res: Response): Promise<void> => {
-    try {
+export const getAllUser = asyncHandler(
+    async (req: Request, res: Response): Promise<void> => {
         const users = await knex("User").select("*");
         res.json(users);
-    } catch (error) {
-        res.status(500).json({ message: "Error fetching users", error });
+        sendResponse({
+            res,
+            status: "error",
+            data: users,
+            message: "User fetched successfully!",
+            statusCode: 200,
+        });
+        return;
     }
-};
+);
 
-export const createUser = async (req: Request, res: Response): Promise<void> => {
-    try {
+export const createUser = asyncHandler(
+    async (req: Request, res: Response): Promise<void> => {
         const { name, email } = req.body;
         // console.log(name)
         const existingUser = await knex("User").where({ email }).first();
@@ -22,9 +29,41 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
             return;
         }
 
-        const newUser = await knex("User").insert({ name, email }).returning("*");
-        res.json(newUser);
-    } catch (error) {
-        res.status(500).json({ message: "Error creating user", error });
+        const newUser = await knex("User")
+            .insert({ name, email })
+            .returning("*");
+        sendResponse({
+            res,
+            status: "error",
+            data: newUser,
+            message: "User created",
+            statusCode: 201,
+        });
     }
-};
+);
+
+export const getUser = asyncHandler(
+    async (req: Request, res: Response): Promise<void> => {
+        const { id } = req.params;
+        // console.log(id)
+        const user = await knex("User").where({ id }).first();
+        if (!user) {
+            sendResponse({
+                res,
+                status: "error",
+                data: null,
+                message: "User not found",
+                statusCode: 404,
+            });
+            return;
+        }
+
+        sendResponse({
+            res,
+            status: "success",
+            data: user,
+            message: "User data fetched successfully!",
+            statusCode: 200,
+        });
+    }
+);

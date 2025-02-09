@@ -14,8 +14,46 @@ datasource db {
 }
 
 model User {
-  id    Int     @id @default(autoincrement())
-  name  String
-  email String  @unique
+  user_id                             Int                             @id @default(autoincrement())
+  name                                String?
+  email                               String?                         @unique
+  profile_img                         String?                         @unique
+  phone_no                            String?                         @db.VarChar(10)
+  username                            String?                         @unique
+  age                                 Int?
+  status                              Boolean?                        @default(true)
+  createdAt                           DateTime                        @default(now())
+  updatedAt                           DateTime                        @default(now()) @updatedAt
+  chat_section                        chat_section[]
+}
+
+model chat_section {
+  chat_section_id                     Int                             @id @default(autoincrement())
+  user_id                             Int
+  user_relation                       User                            @relation(fields: [user_id], references: [user_id])
+  title                               String?                         @db.VarChar(50)
+  status                              Boolean?                        @default(true)
+  createdAt                           DateTime                        @default(now())
+  updatedAt                           DateTime                        @default(now()) @updatedAt
+  chat_response                       chat_response[]
+  chat_question                       chat_question[]
+}
+
+model chat_question{
+  chat_question_id                    Int                             @id @default(autoincrement())
+  chat_section_id                     Int
+  chat_section_relation               chat_section                    @relation(fields: [chat_section_id], references: [chat_section_id])
+  status                              Boolean?                        @default(true)
+  createdAt                           DateTime                        @default(now())
+  updatedAt                           DateTime                        @default(now()) @updatedAt
+}
+
+model chat_response {
+  chat_response_id                    Int                             @id @default(autoincrement())
+  chat_section_id                     Int
+  chat_section_relation               chat_section                    @relation(fields: [chat_section_id], references: [chat_section_id])
+  status                              Boolean?                        @default(true)
+  createdAt                           DateTime                        @default(now())
+  updatedAt                           DateTime                        @default(now()) @updatedAt
 }
 
