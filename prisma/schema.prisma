@@ -25,6 +25,9 @@ model User {
   createdAt                           DateTime                        @default(now())
   updatedAt                           DateTime                        @default(now()) @updatedAt
   chat_section                        chat_section[]
+  conversations                       Conversation[]                  @relation("ConversationParticipants")
+  createdConversations                Conversation[]                  @relation("CreatedConversations")               
+  Message                             Message[]
 }
 
 model chat_section {
@@ -35,25 +38,41 @@ model chat_section {
   status                              Boolean?                        @default(true)
   createdAt                           DateTime                        @default(now())
   updatedAt                           DateTime                        @default(now()) @updatedAt
-  chat_response                       chat_response[]
-  chat_question                       chat_question[]
+
+  @@index([user_id])
 }
 
-model chat_question{
-  chat_question_id                    Int                             @id @default(autoincrement())
-  chat_section_id                     Int
-  chat_section_relation               chat_section                    @relation(fields: [chat_section_id], references: [chat_section_id])
+model Conversation {
+  conversation_id                     Int                             @id @default(autoincrement())
+  user_id                             Int
+  user                                User                            @relation(fields: [user_id], references: [user_id], name: "CreatedConversations")
+  title                               String?                         @db.VarChar(50)
+  participants                        User[]                          @relation("ConversationParticipants") 
   status                              Boolean?                        @default(true)
   createdAt                           DateTime                        @default(now())
   updatedAt                           DateTime                        @default(now()) @updatedAt
+  messages                            Message[]       
+
+  @@index([user_id])
 }
 
-model chat_response {
-  chat_response_id                    Int                             @id @default(autoincrement())
-  chat_section_id                     Int
-  chat_section_relation               chat_section                    @relation(fields: [chat_section_id], references: [chat_section_id])
+enum MessageType {
+  QUESTION
+  RESPONSE
+}
+
+model Message {
+  message_id                          Int                             @id @default(autoincrement())
+  conversation_id                     Int
+  conversation_relation               Conversation                    @relation(fields: [conversation_id], references: [conversation_id])
+  sender_id                           Int
+  sender                              User                            @relation(fields: [sender_id], references: [user_id])
+  content                             String
+  type                                MessageType 
   status                              Boolean?                        @default(true)
   createdAt                           DateTime                        @default(now())
   updatedAt                           DateTime                        @default(now()) @updatedAt
+
+  @@index([conversation_id, sender_id])
 }
 

@@ -70,7 +70,44 @@ export const create_chat_response = asyncHandler(
 );
 
 export const get_chat_section = asyncHandler(
-    async (req: Request, res: Response): Promise<void> => {}
+    async (req: Request, res: Response): Promise<void> => {
+        const { user_id } = req.body;
+        const { chat_section_id } =  req.params;
+
+        if (!user_id) {
+            sendResponse({
+                res,
+                status: "error",
+                data: null,
+                message: "Chat section id or User Id not given !",
+                statusCode: 400,
+            });
+            return;
+        }
+
+        const chat_section = await knex("chat_section")
+            .select("*")
+            .where({ user_id, chat_section_id });
+        
+        if(!chat_section){
+            sendResponse({
+                res,
+                status: "error",
+                data: null,
+                message: "Chat not found !",
+                statusCode: 400,
+            });
+            return;
+        }
+
+        sendResponse({
+            res,
+            status: "success",
+            data: chat_section,
+            message: "Chat Section Fetched successfull !",
+            statusCode: 200,
+        });
+    }
 );
 
 export const get_all_chat_section = asyncHandler(
