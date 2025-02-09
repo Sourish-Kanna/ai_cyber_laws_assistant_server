@@ -20,6 +20,7 @@ const knex: KnexType = Knex({
         // password: "suthakar,,,",
         // port: 5432,
         // timezone: "utc",
+        ssl: { rejectUnauthorized: false },
     },
 });
 
@@ -39,7 +40,9 @@ export function knexDb(DB_NAME: string): KnexType {
             // password: "suthakar,,,",
             // port: 5432,
             // timezone: "utc",
+            ssl: { rejectUnauthorized: false },
         },
+        
     });
 }
 
