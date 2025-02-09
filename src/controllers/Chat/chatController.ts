@@ -124,7 +124,7 @@ export const get_all_chat_section = asyncHandler(
                 status: true,
             });
 
-        if(!all_chat_section){
+        if (!all_chat_section) {
             sendResponse({
                 res,
                 status: "success",
@@ -138,7 +138,7 @@ export const get_all_chat_section = asyncHandler(
         sendResponse({
             res,
             status: "success",
-            data: null,
+            data: all_chat_section,
             message: "Chats Section fetched successfully !",
             statusCode: 200,
         });
@@ -147,20 +147,118 @@ export const get_all_chat_section = asyncHandler(
 );
 
 export const create_message = asyncHandler(
-    async (req: Request, res: Response): Promise<void> => {}
+    async (req: Request, res: Response): Promise<void> => {
+        const { user_id, chat_section, type } = req.query;
+
+        if (!user_id || !chat_section) {
+            sendResponse({
+                res,
+                status: "error",
+                data: null,
+                message: "User ID or Chat Section ID not provided",
+                statusCode: 400,
+            });
+            return;
+        }
+
+        const { message } = req.body;
+
+        if (!message) {
+            sendResponse({
+                res,
+                status: "error",
+                data: null,
+                message: "Message content not provided",
+                statusCode: 400,
+            });
+            return;
+        }
+
+        const existingChatSection = await knex("chat_section")
+            .where({ chat_section_id: chat_section, user_id })
+            .first();
+
+        if (!existingChatSection) {
+            sendResponse({
+                res,
+                status: "error",
+                data: null,
+                message:
+                    "Chat section not found or does not belong to the user",
+                statusCode: 404,
+            });
+            return;
+        }
+
+        const newMessage = await knex("Message")
+            .insert({
+                chat_section_id: chat_section,
+                sender_id: user_id,
+                content: message,
+                type,
+            })
+            .returning("*");
+
+        if (newMessage.length === 0) {
+            sendResponse({
+                res,
+                status: "error",
+                data: null,
+                message: "Failed to create message",
+                statusCode: 400,
+            });
+            return;
+        }
+
+        sendResponse({
+            res,
+            status: "success",
+            data: newMessage[0],
+            message: "Message created successfully",
+            statusCode: 201,
+        });
+    }
 );
 
 export const get_Messages = asyncHandler(
-    async (req: Request, res: Response): Promise<void> => {}
+    async (req: Request, res: Response): Promise<void> => {
+        const { chat_section_id, user_id } = req.query;
+
+        if (!chat_section_id) {
+            sendResponse({
+                res,
+                status: "error",
+                data: null,
+                message: "Chat Section ID not provided",
+                statusCode: 400,
+            });
+            return;
+        }
+
+        const messages = await knex("Message")
+            .select("*")
+            .where({ chat_section_id, sender_id: user_id });
+
+        if (!messages || messages.length === 0) {
+            sendResponse({
+                res,
+                status: "success",
+                data: [],
+                message: "No messages found",
+                statusCode: 200,
+            });
+            return;
+        }
+
+        sendResponse({
+            res,
+            status: "success",
+            data: messages,
+            message: "Messages fetched successfully",
+            statusCode: 200,
+        });
+    }
 );
-
-// export const get_chat_question = asyncHandler(
-//     async (req: Request, res: Response): Promise<void> => {}
-// );
-
-// export const get_chat_response = asyncHandler(
-//     async (req: Request, res: Response): Promise<void> => {}
-// );
 
 export const delete_chat_section = asyncHandler(
     async (req: Request, res: Response): Promise<void> => {}
