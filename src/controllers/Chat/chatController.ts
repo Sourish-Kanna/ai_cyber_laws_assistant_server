@@ -2,6 +2,8 @@ import { Request, Response } from "express";
 import knex from "../../db/constrants";
 import sendResponse from "../../utils/api_response_handler";
 import { asyncHandler } from "../../utils/asyncHandler";
+import axios from 'axios';
+import { GoogleGenerativeAI } from "@google/generative-ai"; // Corrected import
 
 export const create_chat_section = asyncHandler(
     async (req: Request, res: Response): Promise<void> => {
@@ -148,7 +150,7 @@ export const get_all_chat_section = asyncHandler(
 
 export const create_message = asyncHandler(
     async (req: Request, res: Response): Promise<void> => {
-        const { user_id, chat_section, type } = req.query;
+        const { user_id, chat_section } = req.query;
 
         if (!user_id || !chat_section) {
             sendResponse({
@@ -183,40 +185,82 @@ export const create_message = asyncHandler(
                 res,
                 status: "error",
                 data: null,
-                message:
-                    "Chat section not found or does not belong to the user",
+                message: "Chat section not found or does not belong to the user",
                 statusCode: 404,
             });
             return;
         }
 
-        const newMessage = await knex("Message")
+        // Step 1: Store the question in the database with type QUESTION
+        const newQuestion = await knex("Message")
             .insert({
                 chat_section_id: chat_section,
                 sender_id: user_id,
                 content: message,
-                type,
+                type: "QUESTION",
             })
             .returning("*");
 
-        if (newMessage.length === 0) {
+        if (newQuestion.length === 0) {
             sendResponse({
                 res,
                 status: "error",
                 data: null,
-                message: "Failed to create message",
+                message: "Failed to store the question",
                 statusCode: 400,
             });
             return;
         }
 
-        sendResponse({
-            res,
-            status: "success",
-            data: newMessage[0],
-            message: "Message created successfully",
-            statusCode: 201,
-        });
+        // Step 2: Send the question to the DeepSeek API
+        try {
+            const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+            const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+            
+            const result = await model.generateContent(message);
+            const responseContent = result.response.text();
+
+            const newResponse = await knex("Message")
+                .insert({
+                    chat_section_id: chat_section,
+                    sender_id: user_id,
+                    content: responseContent,
+                    type: "RESPONSE",
+                })
+                .returning("*");
+
+            if (newResponse.length === 0) {
+                sendResponse({
+                    res,
+                    status: "error",
+                    data: null,
+                    message: "Failed to store the response",
+                    statusCode: 400,
+                });
+                return;
+            }
+
+            // Step 4: Return the response to the frontend
+            sendResponse({
+                res,
+                status: "success",
+                data: {
+                    question: newQuestion[0],
+                    response: newResponse[0],
+                },
+                message: "Message processed successfully",
+                statusCode: 201,
+            });
+        } catch (error) {
+            console.error("Error calling Gemini API:", error);
+            sendResponse({
+                res,
+                status: "error",
+                data: null,
+                message: "Failed to get response from Gemini API",
+                statusCode: 500,
+            });
+        }
     }
 );
 
