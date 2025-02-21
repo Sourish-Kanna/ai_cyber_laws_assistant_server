@@ -1,8 +1,14 @@
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import dotenv from 'dotenv'
 
 const app = express();
+
+dotenv.config({
+    path: "./.env",
+});
+
 
 const PORT = process.env.CLIENT_PORT;
 app.use(

@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import knex from "../../db/constrants";
 import sendResponse from "../../utils/api_response_handler";
 import { asyncHandler } from "../../utils/asyncHandler";
-import axios from 'axios';
+import axios from "axios";
 import { GoogleGenerativeAI } from "@google/generative-ai"; // Corrected import
 
 export const create_chat_section = asyncHandler(
@@ -185,7 +185,8 @@ export const create_message = asyncHandler(
                 res,
                 status: "error",
                 data: null,
-                message: "Chat section not found or does not belong to the user",
+                message:
+                    "Chat section not found or does not belong to the user",
                 statusCode: 404,
             });
             return;
@@ -214,9 +215,12 @@ export const create_message = asyncHandler(
 
         // Step 2: Send the question to the DeepSeek API
         try {
-            const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-            const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-            
+            const api_code = process.env.GEMINI_API_KEY as string;
+            const genAI = new GoogleGenerativeAI(api_code);
+            const model = genAI.getGenerativeModel({
+                model: "gemini-2.0-flash",
+            });
+
             const result = await model.generateContent(message);
             const responseContent = result.response.text();
 
