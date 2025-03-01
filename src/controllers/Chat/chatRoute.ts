@@ -10,7 +10,7 @@ import {
 
 const router = Router();
 
-router.get("/all", get_all_chat_section);
+router.get("/chat_section/all", get_all_chat_section);
 router.get("/chat_section/:chat_section_id", get_chat_section);
 router.get("/chats", get_Messages);
 router.post("/create-chat-section", create_chat_section);

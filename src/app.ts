@@ -13,7 +13,11 @@ dotenv.config({
 const PORT = process.env.CLIENT_PORT;
 app.use(
     cors({
-        origin: [`http:localhost:${PORT}`],
+        origin: [
+            `http://localhost:${PORT}`,
+            // `http://localhost:${process.env.CLIENT_PORT}`
+            // `http://localhost:5173`
+        ],
         credentials: true,
     })
 );

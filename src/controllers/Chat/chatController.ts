@@ -124,7 +124,8 @@ export const get_all_chat_section = asyncHandler(
             .where({
                 user_id,
                 status: true,
-            });
+            })
+            .orderBy([{ column: "updatedAt", order: "desc" }, { column: "createdAt", order: "desc" }]); // Order by updatedAt first, then createdAt
 
         if (!all_chat_section) {
             sendResponse({
