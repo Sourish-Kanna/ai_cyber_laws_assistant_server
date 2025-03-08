@@ -2,6 +2,13 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import dotenv from 'dotenv'
+import createError from 'http-errors';
+import { OAuth2Client } from 'google-auth-library';
+import { Request, Response, NextFunction } from "express";
+
+import userRouter from "./controllers/User/user.route";
+import chatRoute from "./controllers/Chat/chatRoute";
+import { create } from "domain";
 
 const app = express();
 
@@ -10,11 +17,11 @@ dotenv.config({
 });
 
 
-const PORT = process.env.CLIENT_PORT;
+const PORT = process.env.PORT;
 app.use(
     cors({
         origin: [
-            `http://localhost:${PORT}`,
+            `http://localhost:${process.env.CLIENT_ORIGIN_PORT}` || "http://localhost:5174",
             // `http://localhost:${process.env.CLIENT_PORT}`
             // `http://localhost:5173`
         ],
@@ -27,10 +34,55 @@ app.use(express.urlencoded({ extended: true, limit: "16kb" }));
 app.use(express.static("public"));
 app.use(cookieParser());
 
-import userRouter from "./controllers/User/user.route";
-import chatRoute from "./controllers/Chat/chatRoute";
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET);
+
+interface AuthenticatedRequest extends Request {
+    userId?: string;
+}
+
+async function verifyToken(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+        next(createError.Unauthorized());
+        return;
+    }
+    const token = authHeader.split(" ")[1];
+    const ticket = await client.verifyIdToken({
+        idToken: token,
+        audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    const payload = ticket.getPayload();
+    
+    if (payload) {
+        req.userId = payload['sub'];
+        next();
+        return;
+    }
+    next(createError.Unauthorized());
+}
+
 
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/chat", chatRoute);
+
+app.get("/api/v1/login", verifyToken, async (req: AuthenticatedRequest, res: Response) => {
+    res.json({ userId: req.userId });
+});
+
+
+
+
+app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+    console.error(err);
+    res.status(err.status || 500).json({
+        message: err.message || "Internal Server Error",
+    });
+});
+
+
+
+app.use((req, res) => {
+    res.status(404).send({ message: "Not Found" });
+});
 
 export default app;
