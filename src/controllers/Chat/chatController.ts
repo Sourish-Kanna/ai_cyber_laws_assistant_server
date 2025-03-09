@@ -56,7 +56,7 @@ export const create_chat_section = asyncHandler(
     sendResponse({
       res,
       status: "success",
-      data: create,
+      data: create[0],
       message: "Chat created successfully !",
       statusCode: 201,
     });
