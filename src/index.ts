@@ -2,7 +2,7 @@ import express from "express";
 import app from "./app";
 import pool from "./db/index";
 import dotenv from "dotenv";
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT;
 
 dotenv.config({
     path: "./.env",
