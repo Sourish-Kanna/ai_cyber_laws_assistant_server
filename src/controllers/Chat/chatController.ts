@@ -56,7 +56,7 @@ export const create_chat_section = asyncHandler(
     sendResponse({
       res,
       status: "success",
-      data: create,
+      data: create[0],
       message: "Chat created successfully !",
       statusCode: 201,
     });
@@ -154,9 +154,9 @@ export const get_all_chat_section = asyncHandler(
 
 export const create_message = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
-    const { user_id, chat_section } = req.query;
-
-    if (!user_id || !chat_section) {
+    const { user_id, chat_section_id } = req.query;
+    console.log(user_id,chat_section_id)
+    if (!user_id || !chat_section_id) {
       sendResponse({
         res,
         status: "error",
@@ -167,7 +167,7 @@ export const create_message = asyncHandler(
       return;
     }
 
-    const { message } = req.body;
+    const { message,user_message } = req.body;
 
     if (!message) {
       sendResponse({
@@ -181,7 +181,7 @@ export const create_message = asyncHandler(
     }
 
     const existingChatSection = await knex("chat_section")
-      .where({ chat_section_id: chat_section, user_id })
+      .where({ chat_section_id: chat_section_id, user_id })
       .first();
 
     if (!existingChatSection) {
@@ -198,9 +198,9 @@ export const create_message = asyncHandler(
     // Step 1: Store the question in the database with type QUESTION
     const newQuestion = await knex("Message")
       .insert({
-        chat_section_id: chat_section,
+        chat_section_id: chat_section_id,
         sender_id: user_id,
-        content: message,
+        content: user_message,
         type: "QUESTION",
       })
       .returning("*");
@@ -229,7 +229,7 @@ export const create_message = asyncHandler(
 
       const newResponse = await knex("Message")
         .insert({
-          chat_section_id: chat_section,
+          chat_section_id: chat_section_id,
           sender_id: user_id,
           content: responseContent,
           type: "RESPONSE",
