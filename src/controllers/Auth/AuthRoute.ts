@@ -1,6 +1,6 @@
 import { Router, Request, Response } from "express";
 import { asyncHandler } from "../../utils/asyncHandler";
-import { verifyToken, emailLogin, googleLoginHandler } from "./loginController";
+import { verifyToken, emailLogin, emailRegister, googleAuth } from "./AuthController";
 
 const router = Router();
 
@@ -14,9 +14,12 @@ router.get("/verify", verifyToken, asyncHandler( async (req: AuthenticatedReques
 }));
 
 // ✅ Email login route
-router.post("/email-login", asyncHandler(emailLogin));
+router.post("/login", asyncHandler(emailLogin));
 
-// ✅ Google login route (new)
-router.post("/google-login", asyncHandler(googleLoginHandler));
+// ✅ Email Register route
+router.post("/register", asyncHandler(emailRegister));
+
+// ✅ Google login route
+router.post("/google", asyncHandler(googleAuth));
 
 export default router;

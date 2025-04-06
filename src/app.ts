@@ -6,7 +6,7 @@ import { Request, Response, NextFunction } from "express";
 
 import userRouter from "./controllers/User/user.route";
 import chatRoute from "./controllers/Chat/chatRoute";
-import loginRoute from "./controllers/Auth/AuthRoute";
+import authRouter from "./controllers/Auth/AuthRoute";
 
 const app = express();
 
@@ -34,7 +34,7 @@ app.use(cookieParser());
 
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/chat", chatRoute);
-app.use("/api/v1/login", loginRoute);
+app.use("/api/v1/auth", authRouter);
 
 
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
