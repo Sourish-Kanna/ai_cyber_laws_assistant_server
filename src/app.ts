@@ -6,7 +6,7 @@ import { Request, Response, NextFunction } from "express";
 
 import userRouter from "./controllers/User/user.route";
 import chatRoute from "./controllers/Chat/chatRoute";
-import loginRoute from "./controllers/Login/loginRoute";
+import loginRoute from "./controllers/Auth/AuthRoute";
 
 const app = express();
 
