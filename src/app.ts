@@ -7,7 +7,6 @@ import { Request, Response, NextFunction } from "express";
 import userRouter from "./controllers/User/user.route";
 import chatRoute from "./controllers/Chat/chatRoute";
 import loginRoute from "./controllers/Login/loginRoute";
-import { create } from "domain";
 
 const app = express();
 
@@ -16,7 +15,6 @@ dotenv.config({
 });
 
 
-const PORT = process.env.PORT;
 app.use(
     cors({
         origin: [
