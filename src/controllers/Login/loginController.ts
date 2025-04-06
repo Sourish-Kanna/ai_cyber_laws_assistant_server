@@ -19,7 +19,7 @@ export async function verifyToken(req: AuthenticatedRequest, res: Response, next
   const authHeader = req.headers.authorization;
   if (!authHeader) return next(createError.Unauthorized("No token provided"));
 
-  const token = authHeader.split(" ")[1];
+  const token = authHeader.split(" ")[0];
 
   try {
     const ticket = await client.verifyIdToken({
@@ -55,7 +55,14 @@ export async function emailLogin(req: Request, res: Response, next: NextFunction
 
 export async function googleLoginHandler(req: Request, res: Response, next: NextFunction) {
   try {
+    // console.log("Incoming Google login request body:", req.body); // ✅ Add this line
+
     const { credential } = req.body;
+
+    if (!credential) {
+      return res.status(400).json({ message: "Missing Google credential in request body" });
+    }
+
     const ticket = await client.verifyIdToken({
       idToken: credential,
       audience: process.env.GOOGLE_CLIENT_ID,
@@ -64,7 +71,6 @@ export async function googleLoginHandler(req: Request, res: Response, next: Next
     const payload = ticket.getPayload();
     if (!payload) return res.status(401).json({ message: "Invalid Google token" });
 
-    // Optionally create user in DB here if not exist
     const token = jwt.sign({ userId: payload.sub }, process.env.JWT_SECRET!, { expiresIn: "1h" });
 
     res.status(200).json({ token });
