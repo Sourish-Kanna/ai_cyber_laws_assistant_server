@@ -15,10 +15,13 @@ interface AuthenticatedRequest extends Request {
 }
 
 export async function verifyToken(req: AuthenticatedRequest, res: Response, next: NextFunction) {
-  const authHeader = req.headers.authorization;
+  const authHeader = req.body.credential;
   if (!authHeader) return next(createError.Unauthorized("No token provided"));
+  console.log("Authorization header:", authHeader.split); // Debugging
 
+  // Ensure the token is in the "Bearer <token>" format
   const token = authHeader.split(" ")[0];
+  if (!token) return next(createError.Unauthorized("Invalid token format"));
 
   try {
     const ticket = await client.verifyIdToken({
@@ -27,11 +30,14 @@ export async function verifyToken(req: AuthenticatedRequest, res: Response, next
     });
 
     const payload = ticket.getPayload();
-    if (!payload) return next(createError.Unauthorized("Invalid token"));
+    if (!payload) return next(createError.Unauthorized("Invalid token payload"));
 
-    req.userId = payload.sub;
+    console.log("Google token payload:", payload); // Debugging
+
+    req.userId = payload.sub; // Set the user ID from the token payload
     next();
   } catch (error) {
+    console.error("Token verification error:", error); // Log the error for debugging
     next(createError.Unauthorized("Token verification failed"));
   }
 }
@@ -71,43 +77,21 @@ export async function emailLogin(req: Request, res: Response, next: NextFunction
 }
 
 // 🟦 Google Registration & Login
-// export async function googleAuth(req: Request, res: Response, next: NextFunction) {
-//   try {
-//     const { credential } = req.body;
-//     if (!credential) return res.status(400).json({ message: "Missing Google credential" });
-
-//     const ticket = await client.verifyIdToken({
-//       idToken: credential,
-//       audience: process.env.GOOGLE_CLIENT_ID,
-//     });
-
-//     const payload = ticket.getPayload();
-
-//     if (!payload?.email || !payload.sub) return res.status(401).json({ message: "Invalid Google token" });
-
-//     let user = await knex("User").where({ email: payload.email }).first();
-//     if (!user) {
-//       [user] = await knex("User")
-//         .insert({ user_id: payload.sub, email: payload.email, name: payload.name })
-//         .returning(["user_id", "email", "name"]);
-//     }
-
-//     const token = generateToken(user.user_id);
-//     res.status(200).json({ token, name: user.name });
-//   } catch (err) {
-//     next(createError.Unauthorized("Google token verification failed"));
-//   }
-// }
 
 export async function googleAuth(req: Request, res: Response, next: NextFunction) {
   try {
     const { credential } = req.body;
     if (!credential) return res.status(400).json({ message: "Missing Google credential" });
 
+    // console.log("Google credential:", credential); // Debugging
+    // console.log("Google client ID:", process.env.GOOGLE_CLIENT_ID); // Debugging
+
     const ticket = await client.verifyIdToken({
       idToken: credential,
       audience: process.env.GOOGLE_CLIENT_ID,
     });
+
+    console.log("Google ticket:", ticket); // Debugging
 
     const payload = ticket.getPayload();
     if (!payload?.email || !payload.sub) return res.status(401).json({ message: "Invalid Google token" });

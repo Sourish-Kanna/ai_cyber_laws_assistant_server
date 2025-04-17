@@ -1,6 +1,7 @@
 import { Router, Request, Response } from "express";
 import { asyncHandler } from "../../utils/asyncHandler";
-import { verifyToken, emailLogin, emailRegister, googleAuth } from "./AuthController";
+import { emailLogin, emailRegister, googleAuth } from "./AuthController";
+import { verifyToken }  from "./AuthController";
 
 const router = Router();
 
