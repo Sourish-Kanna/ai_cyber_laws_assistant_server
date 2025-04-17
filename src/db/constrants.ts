@@ -24,6 +24,7 @@ const knex: KnexType = Knex({
     },
 });
 
+
 export function knexDb(DB_NAME: string): KnexType {
     return Knex({
         client: "postgresql",
