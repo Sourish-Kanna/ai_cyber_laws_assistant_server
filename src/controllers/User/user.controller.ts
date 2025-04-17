@@ -34,7 +34,7 @@ export const createUser = asyncHandler(
             .returning("*");
         sendResponse({
             res,
-            status: "error",
+            status: "Created",
             data: newUser,
             message: "User created",
             statusCode: 201,
@@ -45,8 +45,21 @@ export const createUser = asyncHandler(
 export const getUser = asyncHandler(
     async (req: Request, res: Response): Promise<void> => {
         const { id } = req.params;
+        // Validate and parse the id parameter
+        const userId = parseInt(id, 10);
+        if (isNaN(userId)) {
+            sendResponse({
+                res,
+                status: "error",
+                data: null,
+                message: "Invalid user ID",
+                statusCode: 400,
+            });
+            return;
+        }
+
         // console.log(id)
-        const user = await knex("User").where({ id }).first();
+        const user = await knex("User").where({user_id: id }).first();
         if (!user) {
             sendResponse({
                 res,
