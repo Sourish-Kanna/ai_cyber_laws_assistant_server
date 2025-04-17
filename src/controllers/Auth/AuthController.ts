@@ -84,46 +84,58 @@ export async function googleAuth(req: Request, res: Response, next: NextFunction
     if (!credential) return res.status(400).json({ message: "Missing Google credential" });
 
     // console.log("Google credential:", credential); // Debugging
-    // console.log("Google client ID:", process.env.GOOGLE_CLIENT_ID); // Debugging
 
-    const ticket = await client.verifyIdToken({
-      idToken: credential,
-      audience: process.env.GOOGLE_CLIENT_ID,
-    });
+    let ticket;
+    try {
+      ticket = await client.verifyIdToken({
+        idToken: credential,
+        audience: process.env.GOOGLE_CLIENT_ID,
+      });
+    } catch (err) {
+      console.error("Error verifying Google ID token:", err); // Debugging
+      return next(createError.Unauthorized("Google token verification failed"));
+    }
 
-    console.log("Google ticket:", ticket); // Debugging
+    // console.log("Google ticket:", ticket); // Debugging
 
     const payload = ticket.getPayload();
-    if (!payload?.email || !payload.sub) return res.status(401).json({ message: "Invalid Google token" });
+    // console.log("Google token payload:", payload); // Debugging
+    if (!payload?.email || !payload.sub) {
+      return res.status(401).json({ message: "Invalid Google token" });
+    }
 
-    // Extract additional user details from Google payload
     const userData = {
-      user_id: payload.sub,
+      // user_id: payload.sub,
       email: payload.email,
       name: payload.name || null,
       profile_img: payload.picture || null,
       username: payload.given_name || null,
-      age: null, // Age is not provided by Google, can be updated later
-      phone_no: null, // Phone number is not provided by Google, can be updated later
+      age: null,
+      phone_no: null,
       status: true,
     };
 
-    // Check if the user already exists
-    let user = await knex("User").where({ email: userData.email }).first();
-    if (!user) {
-      // Insert new user into the database
-      [user] = await knex("User").insert(userData).returning([
-        "user_id",
-        "email",
-        "name",
-        "profile_img",
-        "phone_no",
-        "username",
-        "age",
-        "status",
-        "createdAt",
-        "updatedAt",
-      ]);
+    let user;
+    try {
+      user = await knex("User").where({ email: userData.email }).first();
+      console.log("User found:", user); // Debugging
+      if (!user) {
+        [user] = await knex("User").insert(userData).returning([
+          "user_id",
+          "email",
+          "name",
+          "profile_img",
+          "phone_no",
+          "username",
+          "age",
+          "status",
+          "createdAt",
+          "updatedAt",
+        ]);
+      }
+    } catch (err) {
+      console.error("Database error:", err); // Debugging
+      return next(createError.InternalServerError("Database operation failed "));
     }
 
     const token = generateToken(user.user_id);
@@ -133,6 +145,7 @@ export async function googleAuth(req: Request, res: Response, next: NextFunction
       message: "User authenticated successfully!",
     });
   } catch (err) {
-    next(createError.Unauthorized("Google token verification failed"));
+    console.error("Unexpected error:", err); // Debugging
+    next(createError.InternalServerError("An unexpected error occurred"));
   }
 }
