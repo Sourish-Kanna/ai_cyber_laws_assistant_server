@@ -64,54 +64,41 @@ export const getPosts = asyncHandler(async (req: Request, res: Response) => {
   });
 });
 
-// Like a post
-export const likePost = asyncHandler(async (req: Request, res: Response) => {
-  const { userId, postId } = req.body;
+// Update interaction (like or dislike)
+export const updateInteraction = asyncHandler(async (req: Request, res: Response) => {
+  const { userId, postId, like, dislike } = req.body;
 
-  if (!userId || !postId) {
-    return sendResponse({ res, status: "error", statusCode: 400, message: "userId and postId are required" });
+  if (!userId || !postId || (like === undefined && dislike === undefined)) {
+    return sendResponse({ 
+      res, 
+      status: "error", 
+      statusCode: 400, 
+      message: "userId, postId, and either like or dislike are required" 
+    });
+  }
+
+  if (like === true && dislike === true) {
+    return sendResponse({ 
+      res, 
+      status: "error", 
+      statusCode: 400, 
+      message: "Both like and dislike cannot be true simultaneously" 
+    });
   }
 
   const interaction = await prisma.postInteraction.upsert({
     where: { userId_postId: { userId, postId } },
-    update: { liked: true, disliked: false },
-    create: { userId, postId, liked: true, disliked: false },
+    update: { liked: like === true, disliked: dislike === true },
+    create: { userId, postId, liked: like === true, disliked: dislike === true },
   });
 
-  sendResponse({ res, status: "success", statusCode: 200, message: "Post liked successfully", data: interaction });
-});
-
-// Dislike a post
-export const dislikePost = asyncHandler(async (req: Request, res: Response) => {
-  const { userId, postId } = req.body;
-
-  if (!userId || !postId) {
-    return sendResponse({ res, status: "error", statusCode: 400, message: "userId and postId are required" });
-  }
-
-  const interaction = await prisma.postInteraction.upsert({
-    where: { userId_postId: { userId, postId } },
-    update: { liked: false, disliked: true },
-    create: { userId, postId, liked: false, disliked: true },
+  sendResponse({ 
+    res, 
+    status: "success", 
+    statusCode: 200, 
+    message: "Interaction updated successfully", 
+    data: interaction 
   });
-
-  sendResponse({ res, status: "success", statusCode: 200, message: "Post disliked successfully", data: interaction });
-});
-
-// Remove like or dislike
-export const removeInteraction = asyncHandler(async (req: Request, res: Response) => {
-  const { userId, postId } = req.body;
-
-  if (!userId || !postId) {
-    return sendResponse({ res, status: "error", statusCode: 400, message: "userId and postId are required" });
-  }
-
-  const interaction = await prisma.postInteraction.update({
-    where: { userId_postId: { userId, postId } },
-    data: { liked: false, disliked: false },
-  });
-
-  sendResponse({ res, status: "success", statusCode: 200, message: "Interaction removed successfully", data: interaction });
 });
 
 
@@ -120,7 +107,5 @@ export const removeInteraction = asyncHandler(async (req: Request, res: Response
 export default {
   createPost,
   getPosts,
-  likePost,
-  dislikePost,
-  removeInteraction,
+  updateInteraction,
 };
