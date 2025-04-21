@@ -6,9 +6,9 @@ import knex from "../../db/constrants"; // Import knex instance
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
-// const generateToken = (userId: string) => {
-//   return jwt.sign({ userId }, process.env.JWT_SECRET!, { expiresIn: "1h" });
-// };
+const generateToken = (userId: string) => {
+  return jwt.sign({ userId }, process.env.JWT_SECRET!, { expiresIn: "1h" });
+};
 
 interface AuthenticatedRequest extends Request {
   userId?: string;
