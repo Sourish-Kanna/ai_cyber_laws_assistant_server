@@ -14,47 +14,49 @@ datasource db {
 }
 
 model User {
-  user_id                             Int                             @id @default(autoincrement())
-  name                                String?
-  email                               String?                         @unique
-  profile_img                         String?                         @unique
-  phone_no                            String?                         @db.VarChar(10)
-  username                            String?                         @unique
-  age                                 Int?
-  status                              Boolean?                        @default(true)
-  createdAt                           DateTime                        @default(now())
-  updatedAt                           DateTime                        @default(now()) @updatedAt
-  chat_section                        chat_section[]
-  conversations                       Conversation[]                  @relation("ConversationParticipants")
-  createdConversations                Conversation[]                  @relation("CreatedConversations")               
-  Message                             Message[]
-  ConversationParticipants           ConversationParticipants[]
+  user_id                  Int                        @id @default(autoincrement())
+  name                     String?
+  email                    String?                    @unique
+  profile_img              String?                    @unique
+  phone_no                 String?                    @db.VarChar(10)
+  username                 String?                    @unique
+  age                      Int?
+  status                   Boolean?                   @default(true)
+  createdAt                DateTime                   @default(now())
+  updatedAt                DateTime                   @default(now()) @updatedAt
+  chat_section             chat_section[]
+  conversations            Conversation[]             @relation("ConversationParticipants")
+  createdConversations     Conversation[]             @relation("CreatedConversations")
+  Message                  Message[]
+  posts                    Post[]
+  interactions             PostInteraction[]
+  ConversationParticipants ConversationParticipants[]
 }
 
 model chat_section {
-  chat_section_id                     Int                             @id @default(autoincrement())
-  user_id                             Int
-  user_relation                       User                            @relation(fields: [user_id], references: [user_id])
-  title                               String?                         @db.VarChar(50)
-  status                              Boolean?                        @default(true)
-  createdAt                           DateTime                        @default(now())
-  updatedAt                           DateTime                        @default(now()) @updatedAt
-  Message                             Message[]  
+  chat_section_id Int       @id @default(autoincrement())
+  user_id         Int
+  user_relation   User      @relation(fields: [user_id], references: [user_id])
+  title           String?   @db.VarChar(50)
+  status          Boolean?  @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @default(now()) @updatedAt
+  Message         Message[]
 
   @@index([user_id])
 }
 
 model Conversation {
-  conversation_id                     Int                             @id @default(autoincrement())
-  user_id                             Int
-  user                                User                            @relation(fields: [user_id], references: [user_id], name: "CreatedConversations")
-  title                               String?                         @db.VarChar(50)
-  participants                        User[]                          @relation("ConversationParticipants") 
-  status                              Boolean?                        @default(true)
-  createdAt                           DateTime                        @default(now())
-  updatedAt                           DateTime                        @default(now()) @updatedAt
-  Message                             Message[]       
-  ConversationParticipants            ConversationParticipants[]
+  conversation_id          Int                        @id @default(autoincrement())
+  user_id                  Int
+  user                     User                       @relation(fields: [user_id], references: [user_id], name: "CreatedConversations")
+  title                    String?                    @db.VarChar(50)
+  participants             User[]                     @relation("ConversationParticipants")
+  status                   Boolean?                   @default(true)
+  createdAt                DateTime                   @default(now())
+  updatedAt                DateTime                   @default(now()) @updatedAt
+  Message                  Message[]
+  ConversationParticipants ConversationParticipants[]
 
   @@index([user_id])
 }
@@ -65,29 +67,53 @@ enum MessageType {
 }
 
 model Message {
-  message_id                          Int                             @id @default(autoincrement())
-  conversation_id                     Int?
-  conversation_relation               Conversation?                    @relation(fields: [conversation_id], references: [conversation_id])
-  chat_section_id                     Int
-  chat_section_relation               chat_section?                    @relation(fields: [chat_section_id], references: [chat_section_id])  
-  sender_id                           Int
-  sender                              User?                            @relation(fields: [sender_id], references: [user_id])
-  content                             String
-  type                                MessageType 
-  status                              Boolean?                        @default(true)
-  createdAt                           DateTime                        @default(now())
-  updatedAt                           DateTime                        @default(now()) @updatedAt
+  message_id            Int           @id @default(autoincrement())
+  conversation_id       Int?
+  conversation_relation Conversation? @relation(fields: [conversation_id], references: [conversation_id])
+  chat_section_id       Int
+  chat_section_relation chat_section? @relation(fields: [chat_section_id], references: [chat_section_id])
+  sender_id             Int
+  sender                User?         @relation(fields: [sender_id], references: [user_id])
+  content               String
+  type                  MessageType
+  status                Boolean?      @default(true)
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @default(now()) @updatedAt
 
   @@index([conversation_id, sender_id])
 }
 
 model ConversationParticipants {
-  user_id          Int
-  conversation_id  Int
-  user             User          @relation(fields: [user_id], references: [user_id])
-  conversation     Conversation  @relation(fields: [conversation_id], references: [conversation_id])
-  status                              Boolean?                        @default(true)
+  user_id         Int
+  conversation_id Int
+  user            User         @relation(fields: [user_id], references: [user_id])
+  conversation    Conversation @relation(fields: [conversation_id], references: [conversation_id])
+  status          Boolean?     @default(true)
 
   @@id([user_id, conversation_id])
 }
 
+model Post {
+  id           Int               @id @default(autoincrement())
+  content      String
+  author       User              @relation(fields: [authorId], references: [user_id])
+  authorId     Int
+  likes        Int               @default(0) // Optional: Can be calculated dynamically
+  dislikes     Int               @default(0) // Optional: Can be calculated dynamically
+  interactions PostInteraction[]
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+}
+
+model PostInteraction {
+  id        Int      @id @default(autoincrement())
+  user      User     @relation(fields: [userId], references: [user_id])
+  userId    Int
+  post      Post     @relation(fields: [postId], references: [id])
+  postId    Int
+  liked     Boolean  @default(false) // True if the user liked the post
+  disliked  Boolean  @default(false) // True if the user disliked the post
+  createdAt DateTime @default(now())
+
+  @@unique([userId, postId]) // Ensures a user can interact with a post only once
+}
