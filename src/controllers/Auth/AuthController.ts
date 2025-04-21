@@ -6,9 +6,9 @@ import knex from "../../db/constrants"; // Import knex instance
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
-const generateToken = (userId: string) => {
-  return jwt.sign({ userId }, process.env.JWT_SECRET!, { expiresIn: "1h" });
-};
+// const generateToken = (userId: string) => {
+//   return jwt.sign({ userId }, process.env.JWT_SECRET!, { expiresIn: "1h" });
+// };
 
 interface AuthenticatedRequest extends Request {
   userId?: string;
@@ -118,7 +118,7 @@ export async function googleAuth(req: Request, res: Response, next: NextFunction
     let user;
     try {
       user = await knex("User").where({ email: userData.email }).first();
-      console.log("User found:", user); // Debugging
+      // console.log("User found:", user); // Debugging
       if (!user) {
         [user] = await knex("User").insert(userData).returning([
           "user_id",
@@ -138,7 +138,12 @@ export async function googleAuth(req: Request, res: Response, next: NextFunction
       return next(createError.InternalServerError("Database operation failed "));
     }
 
-    const token = generateToken(user.user_id);
+    // console.log("User data:", user); // Debugging
+
+    // const token = generateToken(user.user_id);
+    const token = user.user_id;
+    // console.log("Generated token:", token); // Debugging
+
     res.status(200).json({
       token,
       user,
