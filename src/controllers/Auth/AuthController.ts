@@ -6,9 +6,9 @@ import knex from "../../db/constrants"; // Import knex instance
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
-const generateToken = (userId: string) => {
-  return jwt.sign({ userId }, process.env.JWT_SECRET!, { expiresIn: "1h" });
-};
+// const generateToken = (userId: string) => {
+//   return jwt.sign({ userId }, process.env.JWT_SECRET!, { expiresIn: "1h" });
+// };
 
 interface AuthenticatedRequest extends Request {
   userId?: string;
@@ -54,7 +54,8 @@ export async function emailRegister(req: Request, res: Response, next: NextFunct
       .insert({ email, name })
       .returning(["user_id", "email", "name"]);
 
-    const token = generateToken(newUser.user_id);
+    // const token = generateToken(newUser.user_id);
+    const token = newUser.user_id;
     res.status(201).json({ message: "Registered successfully", token, name: newUser.name });
   } catch (err) {
     next(err);
@@ -69,7 +70,8 @@ export async function emailLogin(req: Request, res: Response, next: NextFunction
     const user = await knex("User").where({ email }).first();
     if (!user) return res.status(400).json({ message: "User not found" });
 
-    const token = generateToken(user.user_id);
+    // const token = generateToken(user.user_id);
+    const token = user.user_id;
     res.status(200).json({ token });
   } catch (err) {
     next(err);

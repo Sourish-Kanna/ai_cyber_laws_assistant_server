@@ -27,6 +27,30 @@ export const createPost = asyncHandler(async (req: Request, res: Response) => {
 export const getPosts = asyncHandler(async (req: Request, res: Response) => {
   const userId = req.query.userId ? parseInt(req.query.userId as string, 10) : undefined;
 
+  if (!userId) {
+    return sendResponse({
+      res,
+      status: "error",
+      statusCode: 400,
+      message: "User ID is required",
+    });
+  }
+
+  // Fetch the requesting user's details
+  const requestingUser = await prisma.user.findUnique({
+    where: { user_id: userId },
+    select: { name: true },
+  });
+
+  if (!requestingUser) {
+    return sendResponse({
+      res,
+      status: "error",
+      statusCode: 404,
+      message: "User not found",
+    });
+  }
+
   const posts = await prisma.post.findMany({
     include: {
       author: {
@@ -43,7 +67,12 @@ export const getPosts = asyncHandler(async (req: Request, res: Response) => {
 
   // Transform the data into the required format
   const transformedPosts = posts.map((post) => {
-    const userInteraction = post.interactions.find((interaction) => interaction.userId === userId);
+    const userInteractions = post.interactions.filter(
+      (interaction) => interaction.userId === userId
+    );
+
+    const userInteraction = userInteractions[0];
+
     return {
       id: post.id,
       content: post.content,
@@ -60,7 +89,10 @@ export const getPosts = asyncHandler(async (req: Request, res: Response) => {
     status: "success",
     statusCode: 200,
     message: "Posts fetched successfully",
-    data: transformedPosts,
+    data: {
+      requestingUser: requestingUser.name, // Include the requesting user's name
+      posts: transformedPosts,
+    },
   });
 });
 
