@@ -22,6 +22,7 @@ app.use(
             `http://localhost:${process.env.CLIENT_ORIGIN_PORT}`,
             "http://localhost:5174",
             `http://localhost:5173`,
+            "https://cyber-law-assistant.vercel.app",
             "https://aicyberlawsassistantclient.vercel.app"
         ],
         credentials: true,
