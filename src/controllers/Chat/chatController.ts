@@ -4,6 +4,7 @@ import sendResponse from "../../utils/api_response_handler";
 import { asyncHandler } from "../../utils/asyncHandler";
 import axios from "axios";
 import { GoogleGenerativeAI } from "@google/generative-ai"; // Corrected import
+import { createNotification } from "../../helper/commonHelper";
 
 export const create_chat_section = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
@@ -37,7 +38,7 @@ export const create_chat_section = asyncHandler(
 
     const create = await knex("chat_section")
       .insert({
-        user_id,
+        user_id: Number(user_id),
         title: chatTitle,
       })
       .returning("chat_section_id");
@@ -52,6 +53,8 @@ export const create_chat_section = asyncHandler(
       });
       return;
     }
+
+    await createNotification("Chat Section Created successfully","",user_id,true)
 
     sendResponse({
       res,
@@ -122,7 +125,7 @@ export const get_all_chat_section = asyncHandler(
     const all_chat_section = await knex("chat_section")
       .select("chat_section_id", "title", "createdAt", "updatedAt")
       .where({
-        user_id,
+        user_id: Number(user_id),
         status: true,
       })
       .orderBy([
@@ -248,6 +251,12 @@ export const create_message = asyncHandler(
       }
 
       // Step 4: Return the response to the frontend
+      await createNotification(
+        "Chat Created successfully",
+        "",
+        Number(user_id),
+        true
+      );
       sendResponse({
         res,
         status: "success",
@@ -332,6 +341,13 @@ export const delete_chat_section = asyncHandler(
       });
       return;
     }
+
+    await createNotification(
+      "Chat Section Deleted successfully",
+      "",
+      user_id,
+      true
+    );
 
 		sendResponse({
 			res,

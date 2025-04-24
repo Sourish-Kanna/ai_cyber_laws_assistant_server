@@ -8,6 +8,7 @@ import userRouter from "./controllers/User/user.route";
 import chatRoute from "./controllers/Chat/chatRoute";
 import authRouter from "./controllers/Auth/AuthRoute";
 // import community_Router from "./controllers/Community/Community_Route";
+import notificationRouter from './controllers/notification/notification.route';
 
 const app = express();
 
@@ -39,7 +40,7 @@ app.use("/api/v1/users", userRouter);
 app.use("/api/v1/chat", chatRoute);
 app.use("/api/v1/auth", authRouter);
 // app.use("/api/v1/community", community_Router);
-
+app.use('/api/v1/notification',notificationRouter)
 
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
     console.error(err);
