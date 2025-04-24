@@ -107,7 +107,7 @@ export const get_chat_section = asyncHandler(
 export const get_all_chat_section = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
     const { user_id } = req.query;
-
+    console.log(user_id)
     if (!user_id) {
       sendResponse({
         res,
