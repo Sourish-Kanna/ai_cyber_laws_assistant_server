@@ -8,7 +8,7 @@ import { createNotification } from "../../helper/commonHelper";
 
 export const get_notifications = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
-    console.log("oifhoeiwh")
+    // console.log("oifhoeiwh")
     const { user_id } = req.body;
     if (!user_id) {
       sendResponse({
@@ -87,7 +87,7 @@ export const update_notification = asyncHandler(
       // Soft delete by setting status to false
       const updatedCount = await knex("notification")
         .update({
-          status: false,
+          is_read: true,
           updatedAt: knex.fn.now(), // Explicitly update timestamp
         })
         .where({
