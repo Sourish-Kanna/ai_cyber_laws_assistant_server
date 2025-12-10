@@ -221,7 +221,7 @@ export const create_message = asyncHandler(
       const api_code = process.env.GEMINI_API_KEY as string;
       const genAI = new GoogleGenerativeAI(api_code);
       const model = genAI.getGenerativeModel({
-        model: "gemini-2.0-flash",
+        model: "gemini-2.5-flash",
       });
 
       const result = await model.generateContent(message);
